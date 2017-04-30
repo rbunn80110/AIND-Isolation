@@ -3,6 +3,7 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 import random
+import math
 
 
 NEGATIVE_INFINITY = float("-inf")
@@ -109,15 +110,18 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    if game.is_loser(player):
-        return float("-inf")
+    own_moves = len(game.get_legal_moves(player))
+    if own_moves == 0:
+        return NEGATIVE_INFINITY
 
-    if game.is_winner(player):
-        return float("inf")
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    if opp_moves == 0:
+        return POSITIVE_INFINITY
 
-    w, h = game.width / 2., game.height / 2.
-    y, x = game.get_player_location(player)
-    return float((h - y)**2 + (w - x)**2)
+    opp_future_moves = len(move_lookahead(game, game.get_opponent(player)))
+
+
+    return float(own_moves - 2 * opp_future_moves)
 
 
 def custom_score_2(game, player):
@@ -142,15 +146,23 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
-
     own_moves = len(game.get_legal_moves(player))
+    if own_moves == 0:
+        return NEGATIVE_INFINITY
+
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    return float(own_moves - opp_moves)
+    if opp_moves == 0:
+        return POSITIVE_INFINITY
+
+    p1 = game.get_player_location(game.active_player)
+    p2 = game.get_player_location(game.get_opponent(player))
+    dist = abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+
+    # Stay away three fields, which is the Manhattan distance of
+    # one move. Ideally, this counter's a future move.
+
+
+    return float(own_moves - opp_moves - (dist - 3))
 
 
 def custom_score_3(game, player):
